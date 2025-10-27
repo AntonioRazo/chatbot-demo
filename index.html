@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Demo - Liverpool</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Azure Speech SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+</head>
+<body>
+    
+    <!-- Background iframe (Client's website) -->
+    <div id="background-container">
+        <iframe id="client-website" src="https://estrellablanca.com.mx/?utm_source=google&utm_source=google&utm_medium=cpc&utm_medium=cpc&utm_campaign=estrella-blanca-brand-terms&utm_campaign=GSes%20MEXEstrellaBlanca%20MarcaCompanias&utm_term=estrella%20blanca&gad_source=1&gad_campaignid=2046438878&gclid=Cj0KCQjwsPzHBhDCARIsALlWNG3TGCiKESVzeAH3VgzfYrsArvtC-6OOqtgHF_UGwfK-rYrKg_tLYEkaAt54EALw_wcB" frameborder="0"></iframe>
+        <div class="overlay"></div>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <button id="chat-toggle-btn" class="chat-toggle-btn" aria-label="Abrir asistente">
+        <i class="bi bi-chat-dots-fill"></i>
+        <span class="pulse-ring"></span>
+    </button>
+
+    <!-- Chat Panel -->
+    <div id="chat-panel" class="chat-panel">
+        
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="d-flex align-items-center">
+                <div class="ai-avatar">
+                    <canvas id="ai-avatar-canvas"></canvas>
+                </div>
+                <div class="ms-3">
+                    <h5 class="mb-0">Asistente Liverpool</h5>
+                    <small class="text-muted">Powered by AI</small>
+                </div>
+            </div>
+            <button id="chat-close-btn" class="btn-close-chat">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="chat-messages">
+            <div class="message bot-message">
+                <div class="message-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="message-content">
+                    <p>¡Hola! Soy tu asistente virtual de Liverpool. ¿En qué puedo ayudarte hoy?</p>
+                    <small class="message-time">Ahora</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Indicator -->
+        <div id="status-indicator" class="status-indicator">
+            <div class="status-content">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span id="status-text">Procesando...</span>
+            </div>
+        </div>
+
+        <!-- Voice Visualization -->
+        <div id="voice-visualizer" class="voice-visualizer">
+            <canvas id="voice-canvas"></canvas>
+            <div class="voice-status">
+                <i class="bi bi-mic-fill"></i>
+                <span>Escuchando...</span>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <div class="input-group">
+                <button id="voice-btn" class="btn btn-voice" title="Hablar">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <input type="text" 
+                       id="chat-input" 
+                       class="form-control" 
+                       placeholder="Escribe tu mensaje..."
+                       autocomplete="off">
+                <button id="send-btn" class="btn btn-send">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings/Config Panel Toggle -->
+        <button id="settings-toggle" class="settings-toggle" title="Configuración">
+            <i class="bi bi-gear-fill"></i>
+        </button>
+
+        <!-- Voice Response Toggle -->
+        <button id="voice-response-toggle" class="voice-response-toggle active" title="Respuesta por voz activada">
+            <i class="bi bi-volume-up-fill"></i>
+        </button>
+
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel">
+        <div class="settings-header">
+            <h5>Configuración de IA</h5>
+            <button id="settings-close" class="btn-close-settings">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="settings-body">
+            
+            <!-- Azure Speech Configuration -->
+            <div class="config-section">
+                <h6><i class="bi bi-microsoft"></i> Azure Cognitive Services</h6>
+                <div class="mb-3">
+                    <label class="form-label">Speech Key</label>
+                    <input type="password" id="azure-speech-key" class="form-control" placeholder="Tu Azure Speech Key">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Speech Region</label>
+                    <input type="text" id="azure-speech-region" class="form-control" placeholder="ej: eastus" value="eastus">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Voz (Text-to-Speech)</label>
+                    <select id="azure-voice" class="form-select">
+                        <option value="es-MX-DaliaNeural">Dalia (Femenino - MX)</option>
+                        <option value="es-MX-JorgeNeural">Jorge (Masculino - MX)</option>
+                        <option value="es-ES-ElviraNeural">Elvira (Femenino - ES)</option>
+                        <option value="es-ES-AlvaroNeural">Álvaro (Masculino - ES)</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- AI Configuration -->
+            <div class="config-section">
+                <h6><i class="bi bi-stars"></i> Configuración de IA</h6>
+                <div class="mb-3">
+                    <label class="form-label">API Provider</label>
+                    <select id="ai-provider" class="form-select">
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic (Claude)</option>
+                        <option value="azure-openai">Azure OpenAI</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">API Key</label>
+                    <input type="password" id="ai-api-key" class="form-control" placeholder="Tu API Key">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Modelo</label>
+                    <input type="text" id="ai-model" class="form-control" placeholder="ej: gpt-4" value="gpt-4">
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- System Prompt -->
+            <div class="config-section">
+                <h6><i class="bi bi-file-text"></i> System Prompt</h6>
+                <div class="mb-3">
+                    <label class="form-label">Instrucciones para la IA</label>
+                    <textarea id="system-prompt" class="form-control" rows="8" placeholder="Define el comportamiento de tu asistente...">Eres un asistente virtual profesional de Liverpool, la reconocida tienda departamental mexicana. Tu objetivo es ayudar a los clientes con:
+
+- Información sobre productos y categorías
+- Ubicación de artículos en tienda
+- Promociones y ofertas vigentes
+- Políticas de devolución y garantías
+- Servicios de Liverpool (tarjeta de crédito, envíos, etc.)
+
+Características de tu personalidad:
+- Amable, profesional y servicial
+- Respondes en español de manera clara y concisa
+- Si no sabes algo, lo reconoces honestamente
+- Mantienes un tono cálido pero corporativo
+- Priorizas la satisfacción del cliente
+
+Importante: No inventes información sobre productos específicos o precios. Si te preguntan sobre disponibilidad o precios exactos, recomienda verificar en el sitio web o contactar a la tienda.</textarea>
+                </div>
+            </div>
+
+            <button id="save-settings" class="btn btn-primary w-100">
+                <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/azure-speech.js"></script>
+    <script src="js/ai-service.js"></script>
+    <script src="js/voice-visualizer.js"></script>
+    <script src="js/chat-ui.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+</html>

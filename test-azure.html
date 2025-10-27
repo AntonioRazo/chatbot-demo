@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Azure Speech</title>
+    <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .steps {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico Azure Speech Services</h1>
+        <p>Esta herramienta te ayudará a verificar que tus credenciales de Azure estén correctas.</p>
+
+        <div class="steps">
+            <strong>📋 Checklist:</strong>
+            <ol>
+                <li>Ve a <a href="https://portal.azure.com" target="_blank">Azure Portal</a></li>
+                <li>Busca tu recurso de "Speech Services"</li>
+                <li>Ve a "Keys and Endpoint"</li>
+                <li>Copia KEY 1 (no KEY 2)</li>
+                <li>Copia la LOCATION/REGION (ej: eastus, westus2, etc.)</li>
+            </ol>
+        </div>
+
+        <div class="form-group">
+            <label>Speech Key:</label>
+            <input type="text" id="speechKey" placeholder="Pega aquí tu Azure Speech Key">
+            <small style="color: #666;">Ejemplo: 1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p</small>
+        </div>
+
+        <div class="form-group">
+            <label>Speech Region:</label>
+            <input type="text" id="speechRegion" placeholder="Ej: eastus, westus2, centralus" value="eastus">
+            <small style="color: #666;">Debe coincidir EXACTAMENTE con la región de tu recurso en Azure</small>
+        </div>
+
+        <div class="form-group">
+            <label>Voz para probar:</label>
+            <select id="voiceSelect">
+                <option value="es-MX-DaliaNeural">Dalia (Femenino - México)</option>
+                <option value="es-MX-JorgeNeural">Jorge (Masculino - México)</option>
+                <option value="es-ES-ElviraNeural">Elvira (Femenino - España)</option>
+                <option value="es-ES-AlvaroNeural">Álvaro (Masculino - España)</option>
+            </select>
+        </div>
+
+        <button onclick="testConnection()">🔌 Probar Conexión</button>
+        <button onclick="testSpeech()">🎤 Probar Micrófono (STT)</button>
+        <button onclick="testTTS()">🔊 Probar Voz (TTS)</button>
+
+        <div id="result" class="result"></div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+            <h3>❓ Errores Comunes:</h3>
+            <ul>
+                <li><strong>Error 1006:</strong> Key incorrecta o region incorrecta</li>
+                <li><strong>Authentication failure:</strong> Verifica que copiaste KEY 1 completa</li>
+                <li><strong>Connection failure:</strong> Verifica tu conexión a Internet</li>
+                <li><strong>Region mismatch:</strong> La región debe ser EXACTAMENTE como aparece en Azure (minúsculas, sin espacios)</li>
+            </ul>
+            
+            <h4>✅ Regiones válidas comunes:</h4>
+            <code>eastus, eastus2, westus, westus2, westus3, centralus, northcentralus, southcentralus, 
+            westcentralus, canadacentral, brazilsouth, northeurope, westeurope, uksouth, francecentral,
+            germanywestcentral, switzerlandnorth, norwayeast, southeastasia, eastasia, australiaeast,
+            japaneast, koreacentral, southafricanorth, uaenorth, centralindia</code>
+        </div>
+    </div>
+
+    <script>
+        const SpeechSDK = window.SpeechSDK;
+        let recognizer = null;
+        let isListening = false;
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+            resultDiv.style.display = 'block';
+        }
+
+        function testConnection() {
+            const key = document.getElementById('speechKey').value.trim();
+            const region = document.getElementById('speechRegion').value.trim();
+
+            if (!key) {
+                showResult('❌ Por favor ingresa tu Speech Key', 'error');
+                return;
+            }
+
+            if (!region) {
+                showResult('❌ Por favor ingresa tu Speech Region', 'error');
+                return;
+            }
+
+            showResult('🔄 Probando conexión con Azure...', 'info');
+
+            try {
+                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
+                speechConfig.speechRecognitionLanguage = 'es-MX';
+                
+                showResult(`
+                    ✅ <strong>Configuración creada exitosamente!</strong><br><br>
+                    <strong>Credenciales:</strong><br>
+                    • Key: ${key.substring(0, 8)}...${key.substring(key.length - 4)}<br>
+                    • Region: ${region}<br><br>
+                    Ahora prueba el micrófono o la voz para verificar que funcionan.
+                `, 'success');
+
+            } catch (error) {
+                showResult(`
+                    ❌ <strong>Error al crear la configuración:</strong><br><br>
+                    ${error.message}<br><br>
+                    <strong>Verifica:</strong><br>
+                    • Que la Key sea correcta (32 caracteres)<br>
+                    • Que la Region sea exacta (minúsculas, sin espacios)
+                `, 'error');
+            }
+        }
+
+        function testSpeech() {
+            const key = document.getElementById('speechKey').value.trim();
+            const region = document.getElementById('speechRegion').value.trim();
+
+            if (!key || !region) {
+                showResult('❌ Primero configura tu Key y Region', 'error');
+                return;
+            }
+
+            if (isListening) {
+                // Stop listening
+                if (recognizer) {
+                    recognizer.stopContinuousRecognitionAsync();
+                    isListening = false;
+                    showResult('🛑 Reconocimiento detenido', 'info');
+                }
+                return;
+            }
+
+            showResult('🎤 Habla ahora... (Click de nuevo para detener)', 'info');
+
+            try {
+                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
+                speechConfig.speechRecognitionLanguage = 'es-MX';
+                
+                const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                recognizer.recognized = (s, e) => {
+                    if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                        showResult(`
+                            ✅ <strong>¡Reconocimiento exitoso!</strong><br><br>
+                            <strong>Dijiste:</strong> "${e.result.text}"<br><br>
+                            Tu configuración está funcionando correctamente. 
+                            Ya puedes usarla en el chatbot.
+                        `, 'success');
+                        recognizer.stopContinuousRecognitionAsync();
+                        isListening = false;
+                    }
+                };
+
+                recognizer.canceled = (s, e) => {
+                    let errorMsg = '❌ <strong>Error en el reconocimiento:</strong><br><br>';
+                    
+                    if (e.reason === SpeechSDK.CancellationReason.Error) {
+                        errorMsg += `<strong>Detalles:</strong> ${e.errorDetails}<br><br>`;
+                        
+                        if (e.errorDetails.includes('1006')) {
+                            errorMsg += `
+                                <strong>Error 1006 - Causas comunes:</strong><br>
+                                1. La Speech Key es incorrecta<br>
+                                2. La Region no coincide con tu recurso en Azure<br>
+                                3. El recurso fue eliminado o deshabilitado<br><br>
+                                <strong>Solución:</strong><br>
+                                • Ve a Azure Portal<br>
+                                • Verifica que el recurso existe y está activo<br>
+                                • Copia de nuevo KEY 1 (no KEY 2)<br>
+                                • Verifica la LOCATION exacta (ej: East US = eastus)
+                            `;
+                        } else if (e.errorDetails.includes('authentication')) {
+                            errorMsg += `
+                                <strong>Error de Autenticación:</strong><br>
+                                • Verifica que copiaste KEY 1 completa<br>
+                                • No debe tener espacios al inicio o final<br>
+                                • Debe tener 32 caracteres
+                            `;
+                        }
+                    }
+                    
+                    showResult(errorMsg, 'error');
+                    isListening = false;
+                };
+
+                recognizer.startContinuousRecognitionAsync(
+                    () => {
+                        console.log('Reconocimiento iniciado');
+                        isListening = true;
+                    },
+                    (err) => {
+                        showResult(`❌ Error al iniciar: ${err}`, 'error');
+                        isListening = false;
+                    }
+                );
+
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testTTS() {
+            const key = document.getElementById('speechKey').value.trim();
+            const region = document.getElementById('speechRegion').value.trim();
+            const voice = document.getElementById('voiceSelect').value;
+
+            if (!key || !region) {
+                showResult('❌ Primero configura tu Key y Region', 'error');
+                return;
+            }
+
+            showResult('🔊 Sintetizando voz...', 'info');
+
+            try {
+                const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, region);
+                speechConfig.speechSynthesisVoiceName = voice;
+                
+                const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig);
+
+                const text = "Hola, soy tu asistente virtual. Esta es una prueba de text to speech con Azure.";
+
+                synthesizer.speakTextAsync(
+                    text,
+                    result => {
+                        if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                            showResult(`
+                                ✅ <strong>¡Síntesis de voz exitosa!</strong><br><br>
+                                Si escuchaste el audio, tu configuración funciona perfectamente.<br><br>
+                                <strong>Configuración probada:</strong><br>
+                                • Voz: ${voice}<br>
+                                • Region: ${region}
+                            `, 'success');
+                        } else {
+                            showResult(`❌ Error en síntesis: ${result.errorDetails}`, 'error');
+                        }
+                        synthesizer.close();
+                    },
+                    error => {
+                        showResult(`❌ Error: ${error}`, 'error');
+                        synthesizer.close();
+                    }
+                );
+
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

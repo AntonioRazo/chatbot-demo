@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Preview - AI Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .demo-image {
+            width: 100%;
+            border-radius: 15px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .feature h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .feature p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 20px 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .steps {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .steps h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .step-content p {
+            color: #666;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tech-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .note strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Chatbot Demo</h1>
+        <p class="subtitle">Asistente Virtual Profesional con Texto y Voz</p>
+        
+        <div class="note">
+            <strong>📌 Nota:</strong> Este es el archivo de presentación. Para usar el chatbot, abre <code>index.html</code> después de configurar tus credenciales.
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <h3>Chat Inteligente</h3>
+                <p>Conversaciones naturales con IA generativa</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🎤</div>
+                <h3>Entrada por Voz</h3>
+                <p>Speech-to-Text de Azure</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔊</div>
+                <h3>Salida por Voz</h3>
+                <p>Text-to-Speech natural</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">⚙️</div>
+                <h3>Personalizable</h3>
+                <p>System prompt editable</p>
+            </div>
+        </div>
+        
+        <div class="steps">
+            <h2>🚀 Pasos para Usar la Demo</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Obtener Credenciales de Azure</h3>
+                    <p>Crea un servicio de Speech en Azure Portal. El tier gratuito incluye 5M caracteres/mes.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Obtener API Key de IA</h3>
+                    <p>Elige OpenAI o Anthropic. Ambos tienen opciones de pago por uso.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Abrir index.html</h3>
+                    <p>Abre el archivo principal en tu navegador moderno (Chrome, Edge, Firefox).</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Configurar Credenciales</h3>
+                    <p>Haz clic en el ícono de engranaje y rellena tus API keys.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>¡Listo para Demostrarlo!</h3>
+                    <p>Prueba con texto y voz. Personaliza para tu cliente.</p>
+                </div>
+            </div>
+        </div>
+        
+        <h2 style="color: #667eea; margin-top: 40px;">🛠️ Stack Tecnológico</h2>
+        <div class="tech-stack">
+            <span class="tech-badge">HTML5</span>
+            <span class="tech-badge">CSS3</span>
+            <span class="tech-badge">JavaScript</span>
+            <span class="tech-badge">jQuery</span>
+            <span class="tech-badge">Bootstrap 5</span>
+            <span class="tech-badge">Azure Speech SDK</span>
+            <span class="tech-badge">OpenAI API</span>
+            <span class="tech-badge">Anthropic API</span>
+            <span class="tech-badge">Canvas API</span>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="index.html" class="cta-button">🚀 Abrir Chatbot</a>
+            <a href="README.md" class="cta-button" style="background: #6c757d;">📖 Leer Docs</a>
+        </div>
+        
+        <div class="note" style="margin-top: 30px;">
+            <strong>💡 Tip:</strong> Lee el archivo <code>CONFIGURACION-RAPIDA.md</code> para instrucciones detalladas paso a paso.
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; color: #999; font-size: 0.9rem;">
+            <p>Desarrollado con ❤️ para demos profesionales</p>
+            <p>Compatible con Chrome, Firefox, Safari, Edge</p>
+        </div>
+    </div>
+</body>
+</html>
